@@ -163,11 +163,52 @@ const updateBook = async(req: Request, res: Response, next: NextFunction) => {
 }
 
 
+/**
+ * DELETE /books/:id
+ */
+const deleteBook = async (req: Request, res: Response, next: NextFunction) => {
+
+     try {
+
+          // delete a book
+          const { id } = req.params;
+
+          if(!mongoose.isValidObjectId(id)) {
+               return res.status(400).json({
+                    success: false,
+                    message: "Invalid Book ID",
+                    error: { id },
+               });
+          }
+
+          const deleted = await Book.findByIdAndDelete(id).exec();
+
+          if(!deleted) {
+               return res.status(404).json({
+                    success: false,
+                    message: 'Book not found',
+                    error: { id },
+          });
+          }
+
+          res.status(201).json({
+               success: true,
+               message: 'Book Deleted Successfully!',
+               id: deleted._id,
+          });
+
+     } catch(error) {
+          next(error);
+     }
+}
+
+
 
 
 export const bookController = {
      createBook,
      getAllBooks,
      getBookById,
-     updateBook
+     updateBook,
+     deleteBook
 };
