@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { json, success, ZodError } from "zod";
-import { createBookSchema } from "../../validators/book.validators";
+import { createBookSchema, updateBookSchema } from "../../validators/book.validators";
 import { Book } from "./book.model";
 import mongoose from "mongoose";
 
@@ -108,11 +108,66 @@ const getBookById = async(req: Request, res: Response, next: NextFunction) => {
 };
 
 
+/**
+ * PUT /books/:id
+ */
+const updateBook = async(req: Request, res: Response, next: NextFunction) => {
+
+     try {
+
+          // update by
+          const { id } = req.params;
+
+          if(!mongoose.isValidObjectId(id)) {
+               return res.status(400).json({
+                    success: false,
+                    message: "Invalid Book ID",
+                    error: { id },
+               });
+          }
+
+          const parsed = updateBookSchema.parse(req.body);
+          const updated = await Book.findByIdAndUpdate(id, parsed, { new: true, runValidators: true }).exec();
+
+          if (!updated) {
+               return res.status(404).json({ 
+                    success: false,
+                    message: 'Book not found',
+                    error: { id }
+               });
+          }
+
+          res.status(201).json({
+               success: true,
+               message: "Book updated successfully",
+               updated
+          });
+
+
+
+     } catch(err) {
+     if (err instanceof ZodError) {
+          return res.status(400).json({ 
+               message: 'Validation error', 
+               issues: err 
+          });
+     }
+     if ((err as any)?.code === 11000) {
+          return res.status(409).json({ 
+               message: 'Duplicate key', 
+               detail: (err as any).keyValue 
+          });
+     }
+     next(err);
+     }
+}
+
 
 
 
 export const bookController = {
      createBook,
      getAllBooks,
-     getBookById
+     getBookById,
+     updateBook
 };
