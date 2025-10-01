@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { json, success, ZodError } from "zod";
 import { createBookSchema } from "../../validators/book.validators";
 import { Book } from "./book.model";
+import mongoose from "mongoose";
 
 
 /**
@@ -67,10 +68,51 @@ const getAllBooks = async(req: Request, res: Response, next: NextFunction) => {
 };
 
 
+/**
+ * GET /books/:id
+ */
+const getBookById = async(req: Request, res: Response, next: NextFunction) => {
+
+     try {
+
+          // get books by Id
+          const { id } = req.params;
+
+          if(!mongoose.isValidObjectId(id)) {
+               return res.status(400).json({
+                    success: false,
+                    message: 'Invalid book ID',
+                    error: { id },
+               });
+          }
+
+          const book = await Book.findById(id).exec();
+
+          if (!book) {
+               return res.status(404).json({
+                    success: false,
+                    message: "Book Not Found",
+                    error: { id },
+               });
+          }
+
+          res.status(201).json({
+               success: true,
+               message: "Book retrieved successfully",
+               book,
+          });
+
+     } catch(error) {
+          next(error);
+     }
+};
+
+
 
 
 
 export const bookController = {
      createBook,
-     getAllBooks
+     getAllBooks,
+     getBookById
 };
