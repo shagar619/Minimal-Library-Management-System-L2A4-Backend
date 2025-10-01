@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { json, success, ZodError } from "zod";
 import { createBookSchema } from "../../validators/book.validators";
 import { Book } from "./book.model";
@@ -35,8 +35,42 @@ const createBook = async(req: Request, res: Response) => {
 };
 
 
+/**
+ * GET /books
+ * Query params:
+ *  - limit, skip, genre, author
+ */
+const getAllBooks = async(req: Request, res: Response, next: NextFunction) => {
+
+     try{
+          // get all books
+          const { limit = '100', skip = '0', genre, author } = req.query;
+          const q: any = {};
+          if (genre) q.genre = String(genre);
+          if (author) q.author = String(author);
+
+          const books = await Book.find(q)
+               .limit(Number(limit))
+               .skip(Number(skip))
+               .sort({ createdAt: -1 })
+               .exec();
+
+          res.status(201).json({
+               message: "Books retrieved successfully",
+               success: true,
+               books
+          });
+
+     } catch(error) {
+          next(error);
+     };
+};
+
+
+
 
 
 export const bookController = {
      createBook,
+     getAllBooks
 };
