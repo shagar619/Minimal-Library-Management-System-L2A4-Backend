@@ -2,7 +2,8 @@ import express, { Request, Response } from "express";
 import cors from "cors";
 import mongoose from "mongoose";
 import config from "./config";
-// import routes from "./modules/routes";
+import routes from "./modules/routes";
+
 
 
 const app = express();
@@ -10,7 +11,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// app.use(routes);
+app.use(routes);
 
 
 
