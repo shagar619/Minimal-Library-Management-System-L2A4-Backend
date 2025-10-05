@@ -4,6 +4,6 @@ import bookRoute from "../book/book.route";
 
 const routes = Router();
 
-routes.use("/book", bookRoute);
+routes.use("/books", bookRoute);
 
 export default routes;
