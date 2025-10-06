@@ -24,18 +24,23 @@ const createBook = async(req: Request, res: Response) => {
           
 }    catch (err) {
           if (err instanceof ZodError) {
-          return res.status(400).json({ 
+          return res.status(400).json({
+               success: false,
                message: 'Validation error', 
                issues: err 
           });
      }
           // duplicate key example
           if ((err as any)?.code === 11000) {
-          return res.status(409).json({ message: 'Duplicate key', detail: (err as any).keyValue });
+          return res.status(409).json({ 
+               message: 'Duplicate key', 
+               detail: (err as any).keyValue 
+          });
      }
 
-     res.status(500).json({ 
-          message: 'Server error' 
+     res.status(500).json({
+          success: false,
+          message: 'Something went wrong!', 
      });
 }
 };
@@ -152,7 +157,8 @@ const updateBook = async(req: Request, res: Response, next: NextFunction) => {
 
      } catch(err) {
      if (err instanceof ZodError) {
-          return res.status(400).json({ 
+          return res.status(400).json({
+               success: false,
                message: 'Validation error', 
                issues: err 
           });

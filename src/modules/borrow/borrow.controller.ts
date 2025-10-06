@@ -2,7 +2,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { Borrow } from './borrow.model';
 import { borrowBookSchema, updateBorrowSchema } from '../../validators/borrow.validators';
-import { ZodError } from 'zod';
+import { success, ZodError } from 'zod';
 import mongoose from 'mongoose';
 
 
@@ -25,12 +25,14 @@ try {
      });
      } catch (err) {
      if (err instanceof ZodError)
-          return res.status(400).json({ 
+          return res.status(400).json({
+               success: false,
                message: 'Validation error', 
                issues: err, 
      });
 
      res.status(500).json({ 
+          success: false,
           message: 'Server error', 
      });
 }
@@ -40,6 +42,7 @@ try {
 
 // GET /borrows → all borrow records
 const getAllBorrows = async (_req: Request, res: Response, next: NextFunction) => {
+
 const borrows = await Borrow.find().sort({ borrowedAt: -1 });
 
      try {
@@ -49,7 +52,10 @@ const borrows = await Borrow.find().sort({ borrowedAt: -1 });
           borrows,
      });
      } catch(err) {
-          next(err);
+          res.status(500).json({ 
+          success: false,
+          message: 'Something went wrong!', 
+     });
      }
 };
 
@@ -84,58 +90,97 @@ const getBorrowSummary = async (_req: Request, res: Response) => {
 
      } catch(err) {
           res.status(400).json({
-               message: ``
-          })
+               success: false,
+               message: `Something went wrong to get books summary!`
+          });
      }
 
 };
 
 // PUT /borrows/:id
 const updateBorrow = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    if (!mongoose.isValidObjectId(id))
-      return res.status(400).json({ success: false, message: 'Invalid Borrow ID' });
 
-    const parsed = updateBorrowSchema.parse(req.body);
+     try {
 
-    const updated = await Borrow.findByIdAndUpdate(id, parsed, { new: true }).exec();
-    if (!updated)
-      return res.status(404).json({ success: false, message: 'Borrow not found' });
+     const { id } = req.params;
+          if (!mongoose.isValidObjectId(id))
+          return res.status(400).json({ 
+               success: false, 
+               message: 'Invalid Borrow ID' 
+          });
 
-    res.status(200).json({
-      success: true,
-      message: 'Borrow updated successfully',
-      updated,
-    });
-  } catch (err) {
-    if (err instanceof ZodError)
-      return res.status(400).json({ message: 'Validation error', issues: err });
-    res.status(500).json({ message: 'Server error' });
-  }
+     const parsed = updateBorrowSchema.parse(req.body);
+
+     const updated = await Borrow.findByIdAndUpdate(id, parsed, { new: true }).exec();
+     if (!updated)
+     return res.status(404).json({ 
+          success: false, 
+          message: 'Borrow not found!' 
+     });
+
+     res.status(200).json({
+          success: true,
+          message: 'Borrow updated successfully',
+          updated,
+     });
+     } catch (err) {
+     if (err instanceof ZodError)
+          return res.status(400).json({
+               success: false, 
+               message: 'Validation error', 
+               issues: err 
+          });
+
+          res.status(500).json({
+          success: false,
+          message: 'Something went wrong!', 
+     });
+     }
 };
+
+
+
 
 // DELETE /borrows/:id
 const deleteBorrow = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  if (!mongoose.isValidObjectId(id))
-    return res.status(400).json({ success: false, message: 'Invalid Borrow ID' });
 
-  const deleted = await Borrow.findByIdAndDelete(id);
-  if (!deleted)
-    return res.status(404).json({ success: false, message: 'Borrow not found' });
+     try {
 
-  res.status(200).json({
-    success: true,
-    message: 'Borrow deleted successfully',
-    id: deleted._id,
-  });
+     const { id } = req.params;
+
+     if (!mongoose.isValidObjectId(id))
+     return res.status(400).json({ 
+          success: false, 
+          message: 'Invalid Borrow ID', 
+     });
+
+     const deleted = await Borrow.findByIdAndDelete(id);
+
+     if (!deleted)
+     return res.status(404).json({ 
+          success: false, 
+          message: 'Borrow not found', 
+     });
+
+     res.status(200).json({
+          success: true,
+          message: 'Borrow deleted successfully',
+          id: deleted._id,
+     });
+     } catch(err) {
+          res.status(500).json({
+          success: false,
+          message: 'Something went wrong!', 
+     });
+     }
 };
 
+
+
 export const borrowController = {
-  borrowBook,
-  getAllBorrows,
-  getBorrowSummary,
-  updateBorrow,
-  deleteBorrow,
+     borrowBook,
+     getAllBorrows,
+     getBorrowSummary,
+     updateBorrow,
+     deleteBorrow,
 };
