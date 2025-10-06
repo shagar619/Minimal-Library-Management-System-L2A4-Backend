@@ -5,6 +5,8 @@ import { borrowBookSchema, updateBorrowSchema } from '../../validators/borrow.va
 import { ZodError } from 'zod';
 import mongoose from 'mongoose';
 
+
+
 // POST /borrows → Borrow a book
 const borrowBook = async (req: Request, res: Response) => {
 try {
@@ -16,52 +18,76 @@ try {
           isbn: req.body.isbn || 'N/A',
      });
 
-    res.status(201).json({
-      success: true,
-      message: 'Book borrowed successfully!',
-      created: newBorrow,
-    });
-  } catch (err) {
-    if (err instanceof ZodError)
-      return res.status(400).json({ message: 'Validation error', issues: err });
-    res.status(500).json({ message: 'Server error' });
-  }
+     res.status(201).json({
+          success: true,
+          message: 'Book borrowed successfully!',
+          created: newBorrow,
+     });
+     } catch (err) {
+     if (err instanceof ZodError)
+          return res.status(400).json({ 
+               message: 'Validation error', 
+               issues: err, 
+     });
+
+     res.status(500).json({ 
+          message: 'Server error', 
+     });
+}
 };
 
+
+
 // GET /borrows → all borrow records
-const getAllBorrows = async (_req: Request, res: Response) => {
-  const borrows = await Borrow.find().sort({ borrowedAt: -1 });
-  res.status(200).json({
-    success: true,
-    message: 'Borrows retrieved successfully',
-    borrows,
-  });
+const getAllBorrows = async (_req: Request, res: Response, next: NextFunction) => {
+const borrows = await Borrow.find().sort({ borrowedAt: -1 });
+
+     try {
+          res.status(200).json({
+          success: true,
+          message: 'Borrows retrieved successfully',
+          borrows,
+     });
+     } catch(err) {
+          next(err);
+     }
 };
+
+
 
 // GET /borrows/summary → total quantity borrowed per book
 const getBorrowSummary = async (_req: Request, res: Response) => {
-  const summary = await Borrow.aggregate([
-    {
-      $group: {
-        _id: { bookTitle: '$bookTitle', isbn: '$isbn' },
-        totalQuantityBorrowed: { $sum: '$quantity' },
-      },
-    },
-    {
-      $project: {
-        _id: 0,
-        bookTitle: '$_id.bookTitle',
-        isbn: '$_id.isbn',
-        totalQuantityBorrowed: 1,
-      },
-    },
-  ]);
 
-  res.status(200).json({
-    success: true,
-    message: 'Borrow summary generated',
-    summary,
-  });
+     try {
+          const summary = await Borrow.aggregate([
+     {
+          $group: {
+               _id: { bookTitle: '$bookTitle', isbn: '$isbn' },
+               totalQuantityBorrowed: { $sum: '$quantity' },
+     },
+     },
+     {
+          $project: {
+               _id: 0,
+               bookTitle: '$_id.bookTitle',
+               isbn: '$_id.isbn',
+               totalQuantityBorrowed: 1,
+     },
+     },
+]);
+
+     res.status(200).json({
+     success: true,
+     message: 'Borrow summary generated',
+     summary,
+     });
+
+     } catch(err) {
+          res.status(400).json({
+               message: ``
+          })
+     }
+
 };
 
 // PUT /borrows/:id
