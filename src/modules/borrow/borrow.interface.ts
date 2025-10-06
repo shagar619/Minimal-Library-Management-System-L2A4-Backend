@@ -8,5 +8,5 @@ export interface BorrowDocument extends Document {
      quantity: number;
      dueDate: Date;
      borrowedAt: Date;
-     returned: boolean;
+     returned?: boolean;
 }
