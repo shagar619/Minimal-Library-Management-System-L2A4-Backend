@@ -10,10 +10,11 @@ const borrowSchema = new Schema<BorrowDocument>(
      quantity: { type: Number, required: true, min: 1 },
      dueDate: { type: Date, required: true },
      borrowedAt: { type: Date, default: Date.now },
-     returned: { type: Boolean, default: false },
+     returned: { type: Boolean, default: true },
 },
 { 
-     timestamps: true 
+     timestamps: true,
+     versionKey: false
 }
 );
 
