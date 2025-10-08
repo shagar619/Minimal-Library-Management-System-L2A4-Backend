@@ -11,6 +11,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.use(
+cors({
+     origin: ['http://localhost:5173', 'https://minimal-library-management-dbiaf45ok-shagar-ahmeds-projects.vercel.app']
+     })
+);
+
 app.use(routes);
 
 
